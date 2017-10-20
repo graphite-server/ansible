@@ -1,0 +1,12 @@
+[Unit]
+Description=BatFSMetrics Graphite Service
+After=network.target
+
+[Service]
+Type=simple
+User=apache
+ExecStart=/opt/graphite/webapp/manage.py runmodwsgi --access-log --log-directory=/opt/graphite/storage/log/webapp --port={{ graphite_web_port }} --server-root=/opt/graphite/storage/modwsgi
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

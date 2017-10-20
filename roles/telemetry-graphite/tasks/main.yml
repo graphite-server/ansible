@@ -1,0 +1,2 @@
+- include: install_graphite.yml
+- include: setup_graphite.yml

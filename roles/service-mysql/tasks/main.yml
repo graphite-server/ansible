@@ -1,0 +1,53 @@
+- name: Install mysql 5.7 repo
+  yum: name=http://dev.mysql.com/get/mysql57-community-release-el7-9.noarch.rpm state=present
+
+- name: Install mysql 5.7
+  yum: "pkg={{ item }}"
+  with_items:
+    - mysql-community-server
+    - MySQL-python
+    - python-pip
+
+- name: Update pip
+  pip:
+    name: pip
+    extra_args: --upgrade
+
+- name: Install pexpect
+  pip: name=pexpect
+
+- name: Restart the mysql service
+  service: name=mysqld state=restarted enabled=true
+
+- name: Grep mysql temporary password
+  command: grep 'temporary password' /var/log/mysqld.log
+  register: grep_mysql_passwd
+
+- name: Extract mysql temporary password
+  set_fact:
+    mysql_temp_passwd: "{{ grep_mysql_passwd.stdout.split()[-1] }}"
+
+- debug: msg="Mysql temporary password is {{ mysql_temp_passwd }}"
+
+- name: Change MySQL root user password
+  expect:
+    command: mysql -u root -p
+    responses:
+      Enter password.*: "{{ mysql_temp_passwd }}"
+      mysql.*:
+        - 'ALTER USER "root"@"localhost" IDENTIFIED BY "{{ password }}";'
+        - 'exit'
+  ignore_errors: yes
+
+- name: Update root hosts
+  mysql_user:
+    login_user: root
+    login_password: "{{ password }}"
+    user: root
+    password: "{{ password }}"
+    host: "{{ item }}"
+  with_items:
+    - "{{ ansible_hostname }}"
+    - "{{ ansible_fqdn }}"
+    - 127.0.0.1
+    - ::1

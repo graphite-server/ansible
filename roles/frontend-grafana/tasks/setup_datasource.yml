@@ -1,0 +1,26 @@
+- name: Check for "{{ ansible_hostname }}" graphite datasource
+  uri:
+    url: "http://{{ ansible_hostname }}/grafana/api/datasources/name/{{ ansible_hostname }}"
+    user: admin
+    password: "{{ password }}"
+    force_basic_auth: yes
+  register: datasource
+  failed_when: false
+  changed_when: false
+
+- name: Enable "{{ ansible_hostname }}" graphite datasource
+  uri:
+    url: "http://{{ ansible_hostname }}/grafana/api/datasources"
+    method: POST
+    user: admin
+    password: "{{ password }}"
+    body:
+      name: "{{ ansible_hostname }}"
+      type: "graphite"
+      url: "http://{{ ansible_hostname }}/graphite"
+      access: "proxy"
+      isDefault: true
+    force_basic_auth: yes
+    status_code: 200
+    body_format: json
+  when: datasource.status == 404

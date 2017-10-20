@@ -1,0 +1,13 @@
+server {
+   listen 80;
+   server_name {{ ansible_hostname }} {{ ansible_fqdn }};
+   access_log /var/log/nginx/router.access.log;
+
+   location /graphite {
+      proxy_pass http://127.0.0.1:8080;
+   }
+
+   location /grafana/ {
+      proxy_pass http://127.0.0.1:8081/;
+   }
+}

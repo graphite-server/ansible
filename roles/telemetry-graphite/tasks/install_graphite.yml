@@ -1,0 +1,60 @@
+
+- name: Install graphite dependencies
+  yum: "pkg={{ item }}"
+  with_items:
+    - bitmap
+    - bitmap-fonts
+    - dejavu-sans-fonts.noarch
+    - git
+    - libffi-devel
+    - httpd-devel
+    - memcached
+    - mysql-devel
+    - python-devel
+    - python-pip
+    - openldap-devel
+
+- name: Update pip
+  pip:
+    name: pip
+    extra_args: --upgrade
+
+- name: Update cffi
+  pip:
+    name: cffi
+    extra_args: --upgrade
+
+- name: Install django with pip
+  pip: name="{{ item }}"
+  with_items:
+    - cairocffi
+    - django==1.8.3
+    - django-auth-ldap
+    - django-tagging
+    - mod_wsgi
+    - mysqlclient
+    - pyparsing
+    - python-ldap
+    - python-memcached
+    - twisted
+    - pytz
+
+- name: Clone graphite git repository
+  git:
+    repo: "https://github.com/graphite-server/{{ item }}.git"
+    dest: "/opt/graphite-source/{{ item }}"
+  with_items:
+    - carbon
+    - ceres
+    - graphite-web
+    - whisper
+
+- name: Install graphite
+  shell: "python setup.py install"
+  args:
+    chdir: "/opt/graphite-source/{{ item }}"
+  with_items:
+    - carbon
+    - ceres
+    - graphite-web
+    - whisper

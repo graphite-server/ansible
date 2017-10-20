@@ -1,0 +1,20 @@
+- name: Add grafana yum repository
+  yum_repository:
+    name: grafana
+    description: Graphana YUM repo
+    baseurl: https://packagecloud.io/grafana/stable/el/6/$basearch
+    repo_gpgcheck: true
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://packagecloud.io/gpg.key https://grafanarel.s3.amazonaws.com/RPM-GPG-KEY-grafana
+    sslverify: true
+    sslcacert: /etc/pki/tls/certs/ca-bundle.crt
+
+- name: Update repo cache for the new repo
+  command: yum -q makecache -y --enablerepo=grafana
+
+- name: Install grafana
+  yum: name=grafana state=present
+
+- name: Install grafan grafana-piechart-panel plugin
+  command: grafana-cli plugins install grafana-piechart-panel

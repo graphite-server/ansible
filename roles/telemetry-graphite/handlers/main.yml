@@ -1,0 +1,8 @@
+- name: Restart memcached service
+  service: name=memcached enabled=yes state=restarted
+
+- name: Restart carbon-cache service
+  service: name=carbon-cache enabled=yes state=restarted
+
+- name: Restart graphite-web service
+  service: name=graphite-web enabled=yes state=restarted

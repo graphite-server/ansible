@@ -1,0 +1,10 @@
+- name: Install the development tools
+  yum:
+    name: "@Development tools"
+
+- name: Add epel repo
+  yum_repository:
+    name: epel
+    description: EPEL YUM repo
+    gpgkey: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
+    baseurl: https://dl.fedoraproject.org/pub/epel/$releasever/$basearch/

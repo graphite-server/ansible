@@ -1,0 +1,4 @@
+---
+# tasks file for service-os-password
+- include: set_password.yml
+- include: get_password.yml

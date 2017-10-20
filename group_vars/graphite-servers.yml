@@ -1,0 +1,14 @@
+
+graphite_timezone: America/New_York
+#graphite_timezone: Europe/London
+#graphite_timezone: Europe/Paris
+#graphite_timezone: Asia/Calcutta
+#graphite_timezone: Asia/Tokyo
+
+graphite_prefix: /graphite
+graphite_web_port: 8080
+graphite_superuser: admin
+graphite_superemail: user@domain.com
+
+grafana_prefix: /grafana/
+grafana_port: 8081

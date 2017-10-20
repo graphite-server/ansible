@@ -1,0 +1,21 @@
+#- name: Install pygtail
+#  pip: name=pygtail
+
+- name: Clone logster git repository
+  git:
+    repo: https://github.com/etsy/logster.git
+    dest: /opt/logster-source
+    version: 1.0.1
+
+- name: Install logster
+  pip:
+    name: .
+    chdir: /opt/logster-source
+
+- name: Cron logster
+  cron:
+    name: "{{ item.name }}"
+    job: "{{ item.job }}"
+  with_items:
+    - { name: "Logster graphite access_log", job: "/usr/bin/logster --output=graphite --graphite-host={{ ansible_hostname }}:2003 --tailer=pygtail -p graphite.{{ ansible_hostname }}.access SampleLogster /opt/graphite/storage/log/webapp/access_log" }
+    - { name: "Logster graphite error_log", job: "/usr/bin/logster --output=graphite --graphite-host={{ ansible_hostname }}:2003 --tailer=pygtail -p graphite.{{ ansible_hostname }}.states ErrorLogLogster /opt/graphite/storage/log/webapp/error_log" }

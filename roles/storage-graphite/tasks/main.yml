@@ -1,0 +1,58 @@
+---
+# tasks file for storage-graphite
+- name: Create volume group for graphite
+  lvg:
+    vg: graphite
+    pvs: /dev/sdb
+    state: present
+
+- name: Create logical volume for mysql
+  lvol:
+    vg: graphite
+    lv: mysql
+    size: 10%VG
+    state: present
+
+- name: Create logical volume for data
+  lvol:
+    vg: graphite
+    lv: data
+    size: 80%VG
+    state: present
+
+- name: Create filesystem for graphite-mysql
+  filesystem:
+    fstype: ext4
+    opts: -j -m 0
+    dev: /dev/mapper/graphite-mysql
+
+- name: Create filesystem for graphite-data
+  filesystem:
+    fstype: ext4
+    opts: -j -m 0
+    dev: /dev/mapper/graphite-data
+
+- name: Mount storage for graphite-mysql
+  mount:
+    src: /dev/mapper/graphite-mysql
+    name: /var/lib/mysql
+    fstype: ext4
+    opts: noatime
+    dump: 0
+    passno: 2
+    state: mounted
+
+- name: Remove /var/lib/mysql/lost+found
+  file:
+    path: /var/lib/mysql/lost+found
+    state: absent
+
+- name: Mount storage for graphite-data
+  mount:
+    src: /dev/mapper/graphite-data
+    name: /opt/graphite
+    fstype: ext4
+    opts: noatime
+    dump: 0
+    passno: 2
+    state: mounted

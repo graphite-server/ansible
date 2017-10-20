@@ -1,0 +1,114 @@
+
+- name: Copy memcached config file
+  copy: src=memcached dest=/etc/sysconfig/memcached
+  notify:
+    - Restart memcached service
+
+- name: Create django database
+  mysql_db:
+    db: django
+    login_user: root
+    login_password: "{{ password }}"
+
+- name: Create django user
+  mysql_user:
+    login_user: root
+    login_password: "{{ password }}"
+    user: djangouser
+    password: "{{ password }}"
+    host: localhost
+    priv: django.*:ALL,GRANT
+
+- name: Setup mysql to run with django
+  template: src=my.cnf.j2 dest=/opt/graphite/webapp/graphite/my.cnf
+  notify:
+    - Restart graphite-web service
+
+- name: Setup webapp local_settings.
+  template: src=local_settings.py.j2 dest=/opt/graphite/webapp/graphite/local_settings.py
+  notify:
+    - Restart graphite-web service
+
+- name: Enable by copy manage.py
+  copy:
+    src: /opt/graphite-source/graphite-web/webapp/manage.py
+    dest: /opt/graphite/webapp
+    mode: "u=rwx,g=rx,o=rx"
+    remote_src: true
+  notify:
+    - Restart graphite-web service
+
+- name: Copy graphite configuration
+  copy: src="{{ item }}" dest="/opt/graphite/conf/{{ item }}"
+  with_items:
+    - aggregation-rules.conf
+    - carbon.conf
+    - storage-aggregation.conf
+    - storage-schemas.conf
+  notify:
+    - Restart carbon-cache service
+
+- name: Increasing limits for future sessions
+  pam_limits:
+    domain: root
+    limit_type: '-'
+    limit_item: nofile
+    value: 65535
+
+- name: Increasing limits for current session
+  shell: ulimit -n 65535
+
+- name: Sync the database configuration I
+  shell: /opt/graphite/webapp/manage.py migrate
+  ignore_errors: true
+
+- name: Sync the database configuration II
+  shell: /opt/graphite/webapp/manage.py migrate
+  notify:
+    - Restart graphite-web service
+
+- name: Add graphite superuser
+  shell: /opt/graphite/webapp/manage.py createsuperuser --noinput
+         --username "{{ graphite_superuser }}"
+         --email "{{ graphite_superemail }}"
+  ignore_errors: true
+
+- name: Add graphite superuser password
+  expect:
+    command: /opt/graphite/webapp/manage.py changepassword "{{ graphite_superuser }}"
+    responses:
+      (?i)password: "{{ password }}"
+  notify:
+    - Restart graphite-web service
+
+- name: Collect all the static content from django contributions
+  shell: /opt/graphite/webapp/manage.py collectstatic --noinput
+  notify:
+    - Restart graphite-web service
+
+- name: Copy carbon-cache service configuration
+  copy: src=carbon-cache.service dest=/etc/systemd/system
+  notify:
+    - Restart carbon-cache service
+
+- name: Copy graphite-web service configuration
+  template: src=graphite-web.service.j2 dest=/etc/systemd/system/graphite-web.service
+  notify:
+    - Restart graphite-web service
+
+- name: Creatting apache group
+  group:
+    name: apache
+    state: present
+
+- name: Setting right ownership for graphite/storage
+  file:
+    path: /opt/graphite/storage
+    owner: apache
+    group: apache
+    recurse: true
+    state: directory
+  notify:
+    - Restart graphite-web service
+
+- meta: flush_handlers

@@ -1,0 +1,10 @@
+- name: Install collectl
+  yum: name=collectl
+
+- name: Setup collectl to stream metrics to graphite (remove old DaemonCommands)
+  lineinfile:
+    dest: /etc/collectl.conf
+    regexp: '^DaemonCommands.*'
+    line: 'DaemonCommands = -i 60 -s cDmn --export graphite,{{ ansible_hostname }},b=collectl.'
+  notify:
+    - Restart collectl

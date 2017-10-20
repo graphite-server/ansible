@@ -1,0 +1,11 @@
+[Unit]
+Description=BatFSMetrics Carbon-Cache Service
+
+[Service]
+Type=simple
+User=apache
+ExecStart=/opt/graphite/bin/carbon-cache.py start --debug
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

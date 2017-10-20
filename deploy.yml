@@ -1,0 +1,13 @@
+---
+- name: deploy and configure graphite
+  hosts: graphite-servers
+  remote_user: root
+  roles:
+    - storage-graphite
+    - service-develtools
+    - service-password
+    - service-mysql
+    - service-nginx
+    - telemetry-graphite
+    - service-collectl
+    - service-logster
